@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsc -w",
+    "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/index.ts\"",
     "lint": "gts lint",
     "lint:fix": "gts lint --fix",
     "clean": "gts clean",
@@ -25,8 +25,10 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@types/node": "20.8.2",
     "gts": "^5.2.0",
-    "typescript": "~5.2.0",
-    "@types/node": "20.8.2"
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "~5.2.0"
   }
 }
