@@ -1,0 +1,32 @@
+{
+  "name": "indexer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsc -w",
+    "lint": "gts lint",
+    "lint:fix": "gts lint --fix",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "yarn.cmd run compile",
+    "pretest": "yarn.cmd run compile",
+    "posttest": "yarn.cmd run lint"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.34.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "gts": "^5.2.0",
+    "typescript": "~5.2.0",
+    "@types/node": "20.8.2"
+  }
+}
