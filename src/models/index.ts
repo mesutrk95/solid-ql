@@ -5,7 +5,7 @@ import {
 } from '../SmartContract/utils';
 import {EventFragment} from 'ethers';
 
-const sequelize = new Sequelize(process.env.DATABASE_URL as string);
+export const sequelize = new Sequelize(process.env.DATABASE_URL as string);
 
 export interface DBModelColumn {
   name: string;
@@ -16,6 +16,7 @@ export interface DBModelColumn {
 
 export function defineModel(name: string, columns: DBModelColumn[]) {
   const modelColumns: ModelAttributes<Model> = {};
+  modelColumns.eventId = {type: DataTypes.STRING};
   modelColumns.network = {type: DataTypes.STRING};
   modelColumns.blockNumber = {type: DataTypes.INTEGER};
 
@@ -52,7 +53,7 @@ export const sync = async (force = false) => {
   }
 };
 
-export async function generateAllDatabaseModels(files: string[]) {
+async function loadAllSmartContractModels(files: string[]) {
   for (const file of files) {
     const contractInterface = await loadContractInterface(file);
     const events = contractInterface.fragments.filter(
@@ -72,4 +73,29 @@ export async function generateAllDatabaseModels(files: string[]) {
       defineModel(event.name, columns);
     }
   }
+}
+
+export async function generateAllDatabaseModels(files: string[]) {
+  loadAllSmartContractModels(files);
+
+  sequelize.define(
+    'IndexStatus',
+    {
+      contract: {
+        type: DataTypes.STRING,
+      },
+      eventName: {
+        type: DataTypes.STRING,
+      },
+      network: {
+        type: DataTypes.STRING,
+      },
+      blockNumber: {
+        type: DataTypes.INTEGER,
+      },
+    },
+    {
+      // Other model options go here
+    }
+  );
 }
