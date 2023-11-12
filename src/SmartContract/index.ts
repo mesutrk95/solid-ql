@@ -1,12 +1,12 @@
 import {
   Contract,
+  EventFragment,
   EventLog,
   Interface,
   JsonRpcProvider,
   Listener,
   ethers,
 } from 'ethers';
-import {readFileSync} from 'fs';
 import {loadContractInterface} from './utils';
 
 export class SmartContract {
@@ -22,31 +22,38 @@ export class SmartContract {
       loadContractInterface(path),
       provider
     );
-    this.contract.interface.forEachEvent(event => console.log(event));
+  }
+
+  public getEvents() {
+    const events: EventFragment[] = [];
+    this.contract.interface.forEachEvent(event => events.push(event));
+    return events;
   }
 
   async getBlockEvents(
     eventName: string,
-    blockNumber: number
-  ): Promise<{name: string; value: any; type: string}[][]> {
+    formBlockNumber: number,
+    toBlockNumber: number
+  ) {
     const contractEvent = this.contract.getEvent(eventName);
     const filter = this.contract.filters[eventName];
     const logs = await this.contract.queryFilter(
       filter,
-      blockNumber,
-      blockNumber
+      formBlockNumber,
+      toBlockNumber
     );
     const events = logs.filter(
       log => (log as EventLog)?.fragment?.type === 'event'
     ) as EventLog[];
 
-    return events.map(event =>
-      event.args.map((arg, index) => ({
+    return events.map(event => ({
+      values: event.args.map((arg, index) => ({
         value: arg,
         name: contractEvent.fragment.inputs[index].name,
         type: contractEvent.fragment.inputs[index].type,
-      }))
-    );
+      })),
+      blockNumber: event.blockNumber,
+    }));
   }
 
   listenEvents(eventName: string, callback: Listener) {
