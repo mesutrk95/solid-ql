@@ -1,42 +1,75 @@
 import {Sequelize, DataTypes, ModelAttributes, Model} from 'sequelize';
+import {
+  loadContractInterface,
+  solidityTypeToSequelizeType,
+} from '../SmartContract/utils';
+import {EventFragment} from 'ethers';
 
-interface DBModelColumn {
+const sequelize = new Sequelize(process.env.DATABASE_URL as string);
+
+export interface DBModelColumn {
   name: string;
   type: DataTypes.DataTypeAbstract;
   allowNull?: boolean;
-  // default: any;
+  default?: string | number | Object | undefined;
 }
 
-function defineModel(name: string, columns: DBModelColumn[]) {
-  const modelColumns: ModelAttributes<Model<any, any>> = {};
+export function defineModel(name: string, columns: DBModelColumn[]) {
+  const modelColumns: ModelAttributes<Model> = {};
+  modelColumns.network = {type: DataTypes.STRING};
+  modelColumns.blockNumber = {type: DataTypes.INTEGER};
+
   columns.forEach((col: DBModelColumn) => {
     modelColumns[col.name] = {
       type: col.type,
       allowNull: col.allowNull,
-      // default: col.default,
+      defaultValue: col.default,
     };
   });
 
-  const model = sequelize.define(name, columns, {
+  const model = sequelize.define(name, modelColumns, {
     // Other model options go here
   });
   return model;
 }
 
-const sequelize = new Sequelize(process.env.DATABASE_URL as string);
-
-export const connect = async () => {
+export const connectDatabase = async () => {
   try {
     await sequelize.authenticate();
-    sequelize.sync({
-      force: true,
-    });
     console.log('Connection has been established successfully.');
-
-    defineModel('MyTestModel', [
-      {name: 'name', allowNull: true, type: DataTypes.STRING},
-    ] as DBModelColumn[]);
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
 };
+
+export const sync = async (force = false) => {
+  try {
+    await sequelize.sync({
+      force,
+    });
+  } catch (error) {
+    console.error('Unable to sync the database:', error);
+  }
+};
+
+export async function generateAllDatabaseModels(files: string[]) {
+  for (const file of files) {
+    const contractInterface = await loadContractInterface(file);
+    const events = contractInterface.fragments.filter(
+      f => f.type === 'event'
+    ) as EventFragment[];
+
+    for (const event of events) {
+      const columns: DBModelColumn[] = [];
+      for (const input of event.inputs) {
+        const {type, name} = input;
+        const dbType = solidityTypeToSequelizeType(type);
+        columns.push({
+          name,
+          type: dbType,
+        } as DBModelColumn);
+      }
+      defineModel(event.name, columns);
+    }
+  }
+}

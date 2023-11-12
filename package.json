@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/index.ts\"",
     "lint": "gts lint",
-    "lint:fix": "gts lint --fix",
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
@@ -19,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
+    "ethers": "^6.8.1",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.34.0",
