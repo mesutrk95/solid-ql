@@ -16,21 +16,21 @@ const hash = (s: string) => {
   );
 };
 
-(async () => {
+export async function prepare(configPath: string) {
+  const config = getIndexerConfig(configPath);
+  console.log(config);
+  
   await models.connectDatabase();
-  await models.generateAllDatabaseModels([
-    '../artifacts/contracts/Auction.sol/Auction.json',
-  ]);
+  await models.generateAllDatabaseModels([config.contracts[0].abi]);
   await models.sync(true);
 
-  const config = getIndexerConfig();
   const providers = new Map();
   config.getAllNetworks().forEach(pk => {
     const provider = createProvider(pk);
     providers.set(pk, provider);
   });
 
-  config.entities.forEach(async entity => {
+  config.contracts.forEach(async entity => {
     const {abi, contract, network, startBlock} = entity;
     const provider = providers.get(convertToNetworkEnum(network));
     const currentBlock = await provider.getBlockNumber();
@@ -60,4 +60,4 @@ const hash = (s: string) => {
     }
   });
   // await start();
-})();
+}
