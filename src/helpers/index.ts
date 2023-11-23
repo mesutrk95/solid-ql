@@ -9,17 +9,17 @@ interface IndexerConfigEntity {
 }
 
 interface IndexerConfig {
-  entities: IndexerConfigEntity[];
+  contracts: IndexerConfigEntity[];
   getAllNetworks: () => EVMNetwork[];
 }
 
-export function getIndexerConfig(): IndexerConfig {
-  const content = readFileSync('./indexer.config.json', 'utf-8');
+export function getIndexerConfig(configFile: string): IndexerConfig {
+  const content = readFileSync(configFile, 'utf-8');
   const obj = JSON.parse(content) as IndexerConfig;
   obj.getAllNetworks = () => {
     const providers = new Set<EVMNetwork>();
-    obj.entities.forEach(entity => {
-      providers.add(convertToNetworkEnum(entity.network));
+    obj.contracts.forEach(contract => {
+      providers.add(convertToNetworkEnum(contract.network));
     });
     return Array.from(providers);
   };
