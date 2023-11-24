@@ -1,12 +1,55 @@
 #!/usr/bin/env node
 
+const program = require('commander');
+const Indexer = require('./dist').default;
 const path = require('path');
-const {prepare} = require('./dist');
+
+program
+  .version('1.0.0')
+  .description(
+    'EVM Indexer - Index Ethereum Virtual Machine (EVM) artifacts in a directory.'
+  )
+  .arguments('<directory>')
+  .option('-c, --clean', 'clean the database schemas before making models')
+  .option(
+    '-s, --sync',
+    'Index old events starting from startBlock parameter in config file'
+  )
+  .option('-w, --watch', 'watch for the new blockchain events')
+  .parse(process.argv);
+
+program.parse();
+const options = program.opts();
+
+// Check if a directory argument is provided
+if (!program.args.length) {
+  console.error('Error: please provide the path to the directory.');
+  program.help();
+}
 
 function getProjectConfigPath() {
-  const targetPath = process.cwd();
-  const configFile = path.join(targetPath, 'evm-indexer.json');
+  const directory = program.args[0];
+  const target = path.resolve(directory);
+  const configFile = path.join(target, 'evm-indexer.json');
   return configFile;
 }
-console.log('loading config from', getProjectConfigPath());
-prepare(getProjectConfigPath());
+
+const configFile = getProjectConfigPath();
+console.log('loading config from', Indexer);
+const indexer = new Indexer(configFile);
+indexer.prepare().then(async () => {
+  if (options.clean) {
+    console.log('cleaning the database schemas and generating them again');
+    await indexer.sync(true);
+  }
+
+  if (options.sync) {
+    console.log('indexing old events starting from startBlock');
+    await indexer.processOldEvents();
+  }
+
+  if (options.watch) {
+    console.log('watching to the network for new events...');
+    await indexer.watch();
+  }
+});

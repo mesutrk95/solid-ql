@@ -2,7 +2,6 @@ import {
   Contract,
   EventFragment,
   EventLog,
-  Interface,
   JsonRpcProvider,
   Listener,
   ethers,
@@ -53,6 +52,7 @@ export class SmartContract {
         type: contractEvent.fragment.inputs[index].type,
       })),
       blockNumber: event.blockNumber,
+      transactionHash: event.transactionHash,
     }));
   }
 
