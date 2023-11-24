@@ -5,8 +5,6 @@ import {
 } from '../SmartContract/utils';
 import {EventFragment} from 'ethers';
 
-export const sequelize = new Sequelize(process.env.DATABASE_URL as string);
-
 export interface DBModelColumn {
   name: string;
   type: DataTypes.DataTypeAbstract;
@@ -14,48 +12,55 @@ export interface DBModelColumn {
   default?: string | number | Object | undefined;
 }
 
-export function defineModel(name: string, columns: DBModelColumn[]) {
-  const modelColumns: ModelAttributes<Model> = {};
-  modelColumns.eventId = {type: DataTypes.STRING};
-  modelColumns.network = {type: DataTypes.STRING};
-  modelColumns.blockNumber = {type: DataTypes.INTEGER};
+export default class Models {
+  sequelize: Sequelize;
 
-  columns.forEach((col: DBModelColumn) => {
-    modelColumns[col.name] = {
-      type: col.type,
-      allowNull: col.allowNull,
-      defaultValue: col.default,
-    };
-  });
-
-  const model = sequelize.define(name, modelColumns, {
-    // Other model options go here
-  });
-  return model;
-}
-
-export const connectDatabase = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
+  constructor(url: string) {
+    this.sequelize = new Sequelize(url, {logging: false});
   }
-};
 
-export const sync = async (force = false) => {
-  try {
-    await sequelize.sync({
-      force,
+  private defineModel(name: string, columns: DBModelColumn[]) {
+    const modelColumns: ModelAttributes<Model> = {};
+    modelColumns.eventId = {type: DataTypes.STRING};
+    modelColumns.network = {type: DataTypes.STRING};
+    modelColumns.blockNumber = {type: DataTypes.INTEGER};
+    modelColumns.txHash = {type: DataTypes.STRING};
+
+    columns.forEach((col: DBModelColumn) => {
+      modelColumns[col.name] = {
+        type: col.type,
+        allowNull: col.allowNull,
+        defaultValue: col.default,
+      };
     });
-  } catch (error) {
-    console.error('Unable to sync the database:', error);
-  }
-};
 
-async function loadAllSmartContractModels(files: string[]) {
-  for (const file of files) {
-    const contractInterface = await loadContractInterface(file);
+    const model = this.sequelize.define(name, modelColumns, {
+      // Other model options go here
+    });
+    return model;
+  }
+
+  async connect() {
+    try {
+      await this.sequelize.authenticate();
+      console.log('Connection has been established successfully.');
+    } catch (error) {
+      console.error('Unable to connect to the database:', error);
+    }
+  }
+
+  async sync(force = false) {
+    try {
+      await this.sequelize.sync({
+        force,
+      });
+    } catch (error) {
+      console.error('Unable to sync the database:', error);
+    }
+  }
+
+  private async loadAllSmartContractModels(abiFile: string) {
+    const contractInterface = await loadContractInterface(abiFile);
     const events = contractInterface.fragments.filter(
       f => f.type === 'event'
     ) as EventFragment[];
@@ -70,32 +75,32 @@ async function loadAllSmartContractModels(files: string[]) {
           type: dbType,
         } as DBModelColumn);
       }
-      defineModel(event.name, columns);
+      this.defineModel(event.name, columns);
     }
   }
-}
 
-export async function generateAllDatabaseModels(files: string[]) {
-  loadAllSmartContractModels(files);
+  async generateAllDatabaseModels(abiFile: string) {
+    this.loadAllSmartContractModels(abiFile);
 
-  sequelize.define(
-    'IndexStatus',
-    {
-      contract: {
-        type: DataTypes.STRING,
+    this.sequelize.define(
+      'IndexStatus',
+      {
+        contract: {
+          type: DataTypes.STRING,
+        },
+        eventName: {
+          type: DataTypes.STRING,
+        },
+        network: {
+          type: DataTypes.STRING,
+        },
+        blockNumber: {
+          type: DataTypes.INTEGER,
+        },
       },
-      eventName: {
-        type: DataTypes.STRING,
-      },
-      network: {
-        type: DataTypes.STRING,
-      },
-      blockNumber: {
-        type: DataTypes.INTEGER,
-      },
-    },
-    {
-      // Other model options go here
-    }
-  );
+      {
+        // Other model options go here
+      }
+    );
+  }
 }

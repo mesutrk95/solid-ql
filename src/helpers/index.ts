@@ -8,8 +8,9 @@ interface IndexerConfigEntity {
   startBlock: number;
 }
 
-interface IndexerConfig {
+export interface IndexerConfig {
   contracts: IndexerConfigEntity[];
+  db: string;
   getAllNetworks: () => EVMNetwork[];
 }
 
