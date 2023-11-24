@@ -14,8 +14,8 @@
     "compile": "tsc",
     "fix": "gts fix",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "gts lint && tsc",
-    "posttest": "yarn.cmd run lint"
+    "prepare": "tsc",
+    "posttest": "lint"
   },
   "author": "",
   "license": "ISC",

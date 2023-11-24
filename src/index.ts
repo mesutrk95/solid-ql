@@ -4,7 +4,7 @@ dotenv.config();
 import Models from './models';
 import {IndexerConfig, getIndexerConfig} from './helpers';
 import {createProvider} from './helpers/providers';
-import {SmartContract} from './SmartContract';
+import {SmartContractEvent, SmartContract} from './SmartContract';
 import {EVMNetwork, convertToNetworkEnum} from './blockchain/networks';
 import {EventLog, JsonRpcProvider} from 'ethers';
 import {hash} from './utils';
@@ -13,11 +13,13 @@ export default class Indexer {
   config: IndexerConfig;
   models: Models;
   providers: Map<EVMNetwork, JsonRpcProvider>;
+  watcherSubscriptions: any[];
 
   constructor(configPath: string) {
     this.config = getIndexerConfig(configPath);
     this.models = new Models(this.config.db);
     this.providers = new Map();
+    this.watcherSubscriptions = [];
   }
 
   async prepare() {
@@ -34,6 +36,35 @@ export default class Indexer {
 
   async sync(force = false) {
     await this.models.sync(force);
+  }
+
+  async storeEventToDatabase(
+    event: SmartContractEvent,
+    network: string,
+    contract: string
+  ) {
+    const eventId = hash(event.transactionHash);
+    const eventSchema = this.models.sequelize.models[event.name];
+    const dbEvent = await eventSchema.findOne({
+      where: {eventId},
+    });
+    if (!dbEvent) {
+      const record: any = {};
+      record.blockNumber = event.blockNumber;
+      record.txHash = event.transactionHash;
+      record.network = network.toLowerCase();
+      record.contract = contract;
+      for (const ev of event.values) {
+        record[ev.name] = ev.value.toString();
+      }
+      record.eventId = eventId;
+      await this.models.sequelize.models[event.name].create(record);
+      console.log(`stored event ${event.name}, eventId: ${eventId}`);
+    } else {
+      console.log(
+        `skipped event ${event.name}, eventId: ${eventId} already exists`
+      );
+    }
   }
 
   async processOldEvents() {
@@ -54,16 +85,7 @@ export default class Indexer {
         );
 
         for (const event of events) {
-          const record: any = {};
-          record.blockNumber = event.blockNumber;
-          record.txHash = event.transactionHash;
-          record.network = network.toLowerCase();
-          for (const ev of event.values) {
-            record[ev.name] = ev.value.toString();
-          }
-          const eventId = hash(event.transactionHash);
-          record.eventId = eventId;
-          await this.models.sequelize.models[ef.name].create(record);
+          await this.storeEventToDatabase(event, network, contract);
         }
       }
     }
@@ -78,12 +100,22 @@ export default class Indexer {
       const smartContract = new SmartContract(abi, contract, provider);
 
       for (const ef of smartContract.getEvents()) {
-        const sub = smartContract.listenEvents(ef.name, (values: EventLog) => {
-          if (values.blockNumber < startBlock) return;
-          console.log('new eveeeeeeeeeeeeeeeeeeeeeeent', ef.name, values);
-        });
+        const sub = smartContract.listenEvents(
+          ef.name,
+          (event: SmartContractEvent) => {
+            if (event.blockNumber < startBlock) return;
+            this.storeEventToDatabase(event, network, contract);
+          }
+        );
+        this.watcherSubscriptions.push(sub);
       }
-      // sub.unsubscribe();
+    }
+  }
+
+  async destroy() {
+    await this.models.sequelize.close();
+    for (const sub of this.watcherSubscriptions) {
+      sub.unsubscribe();
     }
   }
 }
