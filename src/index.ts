@@ -8,6 +8,7 @@ import {SmartContractEvent, SmartContract} from './SmartContract';
 import {EVMNetwork, convertToNetworkEnum} from './blockchain/networks';
 import {EventLog, JsonRpcProvider} from 'ethers';
 import {hash} from './utils';
+import Graph from './graph';
 
 export default class Indexer {
   config: IndexerConfig;
@@ -110,6 +111,11 @@ export default class Indexer {
         this.watcherSubscriptions.push(sub);
       }
     }
+  }
+
+  async startGraph() {
+    const graph = new Graph();
+    graph.start(this.config, this.models);
   }
 
   async destroy() {
