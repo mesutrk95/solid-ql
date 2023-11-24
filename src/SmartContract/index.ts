@@ -25,7 +25,7 @@ export class SmartContract {
   constructor(
     path: string,
     contractAddress: string,
-    provider: JsonRpcProvider
+    provider: JsonRpcProvider | undefined
   ) {
     this.contract = new ethers.Contract(
       contractAddress,
