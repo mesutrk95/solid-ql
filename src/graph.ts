@@ -6,8 +6,43 @@ import Models from './models';
 import {IndexerConfig} from './helpers';
 import {loadContractInterface} from './SmartContract/utils';
 import {EventFragment} from 'ethers';
-import {QueryTypes} from 'sequelize';
+import {DataTypeAbstract, DataTypes, QueryTypes} from 'sequelize';
 
+function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
+  switch (sequelizeType) {
+    case DataTypes.STRING.key:
+    case DataTypes.TEXT.key:
+    case DataTypes.UUID.key:
+    case DataTypes.UUIDV1.key:
+    case DataTypes.UUIDV4.key:
+    case DataTypes.JSON.key:
+    case DataTypes.JSONB.key:
+      return 'String';
+
+    case DataTypes.FLOAT.key:
+    case DataTypes.REAL.key:
+    case DataTypes.DOUBLE.key:
+      return 'Float';
+
+    case DataTypes.INTEGER.key:
+    case DataTypes.BIGINT.key:
+    case DataTypes.DECIMAL.key:
+      return 'Int';
+
+    case DataTypes.BOOLEAN.key:
+      return 'Boolean';
+
+    case DataTypes.DATE.key:
+    case DataTypes.DATEONLY.key:
+    case DataTypes.TIME.key:
+      return 'Date';
+
+    case DataTypes.ENUM.key:
+      return 'String';
+    default:
+      return 'String';
+  }
+}
 type User = {
   id: number;
   name: string;
@@ -76,18 +111,17 @@ export default class Graph {
         }
 
         ${tables.map(table => {
-          console.log(table);
           const columns = models.sequelize.models[table].getAttributes();
-          for (const column of Object.keys(columns)) {
-            console.log(column);
-          }
-          console.log(columns);
 
           return `
                 type ${table} {
-                    id: Int!
-                    name: String!
-                    email: String!
+                    ${Object.keys(columns).map(
+                      column =>
+                        `${column}!: ${sequelizeToGraphqlType(
+                          columns[column].type
+                        )}
+                        `
+                    )}
                 }
             `;
         })}
@@ -96,6 +130,8 @@ export default class Graph {
             getUser(id: String): User
             getUsers: [User]
         }`;
+    console.log(rawSchema);
+
     const schema = buildSchema(rawSchema);
     const app = express();
 
