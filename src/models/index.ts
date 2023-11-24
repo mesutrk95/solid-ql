@@ -21,7 +21,7 @@ export default class Models {
 
   private defineModel(name: string, columns: DBModelColumn[]) {
     const modelColumns: ModelAttributes<Model> = {};
-    modelColumns.eventId = {type: DataTypes.STRING};
+    modelColumns.eventId = {type: DataTypes.INTEGER};
     modelColumns.network = {type: DataTypes.STRING};
     modelColumns.blockNumber = {type: DataTypes.INTEGER};
     modelColumns.txHash = {type: DataTypes.STRING};

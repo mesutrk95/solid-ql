@@ -3,6 +3,7 @@
 const program = require('commander');
 const Indexer = require('./dist').default;
 const path = require('path');
+const {exit} = require('process');
 
 program
   .version('1.0.0')
@@ -49,7 +50,14 @@ indexer.prepare().then(async () => {
   }
 
   if (options.watch) {
-    console.log('watching to the network for new events...');
+    console.log('watching the network for new events...');
     await indexer.watch();
   }
+});
+
+process.on('SIGINT', async () => {
+  console.log('\nclosing watchers ...');
+  await indexer.destroy();
+  console.log('bye!');
+  exit(0);
 });
