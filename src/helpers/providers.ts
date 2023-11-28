@@ -1,10 +1,13 @@
 import {JsonRpcProvider, ethers} from 'ethers';
-import {EVMNetwork} from '../blockchain/networks';
+import {EVMNetwork, convertToNetworkEnum} from '../blockchain/networks';
 
 const ALCHEMY_APIKEY = 'UWGpZO1vwXneuuoMUhVOWw_meeUC8WDT';
 
-export function createProvider(pk: EVMNetwork): JsonRpcProvider | undefined {
-  switch (pk) {
+export function createProvider(
+  networkName: string
+): JsonRpcProvider | undefined {
+  const network = convertToNetworkEnum(networkName);
+  switch (network) {
     case EVMNetwork.ETHEREUM:
       return new ethers.AlchemyProvider('main', ALCHEMY_APIKEY);
     case EVMNetwork.SEPOLIA:
@@ -15,6 +18,6 @@ export function createProvider(pk: EVMNetwork): JsonRpcProvider | undefined {
       );
 
     default:
-      throw new Error(`Network ${pk} is not defined!`);
+      throw new Error(`Network ${network} is not defined!`);
   }
 }
