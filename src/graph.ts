@@ -43,50 +43,50 @@ function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
       return 'String';
   }
 }
-type User = {
-  id: number;
-  name: string;
-  email: string;
-};
+// type User = {
+//   id: number;
+//   name: string;
+//   email: string;
+// };
 
-type UserInput = Pick<User, 'email' | 'name'>;
+// type UserInput = Pick<User, 'email' | 'name'>;
 
-const users = [
-  {id: 1, name: 'John Doe', email: 'johndoe@gmail.com'},
-  {id: 2, name: 'Jane Doe', email: 'janedoe@gmail.com'},
-  {id: 3, name: 'Mike Doe', email: 'mikedoe@gmail.com'},
-];
+// const users = [
+//   {id: 1, name: 'John Doe', email: 'johndoe@gmail.com'},
+//   {id: 2, name: 'Jane Doe', email: 'janedoe@gmail.com'},
+//   {id: 3, name: 'Mike Doe', email: 'mikedoe@gmail.com'},
+// ];
 
-const getUser = (args: {id: number}): User | undefined =>
-  users.find(u => u.id === args.id);
+// const getUser = (args: {id: number}): User | undefined =>
+//   users.find(u => u.id === args.id);
 
-const getUsers = (): User[] => users;
+// const getUsers = (): User[] => users;
 
-const createUser = (args: {input: UserInput}): User => {
-  const user = {
-    id: users.length + 1,
-    ...args.input,
-  };
-  users.push(user);
+// const createUser = (args: {input: UserInput}): User => {
+//   const user = {
+//     id: users.length + 1,
+//     ...args.input,
+//   };
+//   users.push(user);
 
-  return user;
-};
+//   return user;
+// };
 
-const updateUser = (args: {user: User}): User => {
-  const index = users.findIndex(u => u.id === args.user.id);
-  const targetUser = users[index];
+// const updateUser = (args: {user: User}): User => {
+//   const index = users.findIndex(u => u.id === args.user.id);
+//   const targetUser = users[index];
 
-  if (targetUser) users[index] = args.user;
+//   if (targetUser) users[index] = args.user;
 
-  return targetUser;
-};
+//   return targetUser;
+// };
 
-const root = {
-  getUser,
-  getUsers,
-  createUser,
-  updateUser,
-};
+// const root = {
+//   getUser,
+//   getUsers,
+//   createUser,
+//   updateUser,
+// };
 
 export default class Graph {
   async start(config: IndexerConfig, models: Models) {
@@ -96,41 +96,60 @@ export default class Graph {
       const contract = loadContractInterface(abi);
       contract.forEachEvent(event => tables.push(event.name));
     }
-    // const results = await models.sequelize.query(
-    //   "select table_schema, table_name from information_schema.tables where table_schema='public'"
-    // );
-    // const result = results[0] as {table_name: string}[];
-    // const tables = result.map(r => r.table_name);
 
     const rawSchema = `
-         
-        type User {
-            id: Int!
-            name: String!
-            email: String!
-        }
+        ${tables
+          .map(table => {
+            const columns = models.sequelize.models[table].getAttributes();
 
-        ${tables.map(table => {
-          const columns = models.sequelize.models[table].getAttributes();
-
-          return `
-                type ${table} {
-                    ${Object.keys(columns).map(
-                      column =>
-                        `${column}!: ${sequelizeToGraphqlType(
-                          columns[column].type
-                        )}
-                        `
-                    )}
-                }
+            return `
+            type ${table} {
+                ${Object.keys(columns)
+                  .map(
+                    column =>
+                      `${column}: ${sequelizeToGraphqlType(
+                        columns[column].type
+                      )}!
+                      `
+                  )
+                  .join('')}
+            }
             `;
-        })}
+          })
+          .join('')}
  
         type Query {
-            getUser(id: String): User
-            getUsers: [User]
+            ${tables
+              .map(
+                table =>
+                  `get${table}: [${table}]
+                `
+              )
+              .join('')}
         }`;
     console.log(rawSchema);
+    const root = {} as any;
+
+    for (const table of tables) {
+      root[`get${table}`] = async (q: any) => {
+        const {page, pageSize, filter} = q;
+        const offset = (page - 1) * pageSize;
+        console.log(page, pageSize, offset);
+
+        let query = `SELECT * FROM "${table}s"`;
+
+        if (filter) {
+          // Add WHERE clauses based on filter criteria
+          query += ` WHERE column_name = ${filter}`;
+        }
+
+        const result = await models.sequelize.query(query, {
+          type: QueryTypes.SELECT,
+          logging: console.log,
+        });
+        return result;
+      };
+    }
 
     const schema = buildSchema(rawSchema);
     const app = express();

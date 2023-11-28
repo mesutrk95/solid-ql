@@ -1,5 +1,6 @@
 import {
   Contract,
+  ContractEventPayload,
   EventFragment,
   EventLog,
   JsonRpcProvider,
@@ -73,9 +74,12 @@ export class SmartContract {
   }
 
   listenEvents(eventName: string, callback: Listener) {
-    this.contract.on(eventName, (event: EventLog) =>
-      callback(this.parseEventLog(event))
-    );
+    this.contract.on(eventName, (...args: (ContractEventPayload | any)[]) => {
+      const payload = args.find(
+        arg => typeof arg === 'object'
+      ) as ContractEventPayload;
+      callback(this.parseEventLog(payload.log));
+    });
 
     return {
       unsubscribe: () => this.contract.removeListener(eventName, callback),
