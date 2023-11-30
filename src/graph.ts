@@ -4,8 +4,7 @@ import {graphqlHTTP} from 'express-graphql';
 
 import Models from './models';
 import {loadContractInterface} from './SmartContract/utils';
-import {EventFragment} from 'ethers';
-import {DataTypeAbstract, DataTypes, QueryTypes} from 'sequelize';
+import {DataTypes, QueryTypes} from 'sequelize';
 import AppConfig from './config';
 
 function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
@@ -43,55 +42,12 @@ function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
       return 'String';
   }
 }
-// type User = {
-//   id: number;
-//   name: string;
-//   email: string;
-// };
-
-// type UserInput = Pick<User, 'email' | 'name'>;
-
-// const users = [
-//   {id: 1, name: 'John Doe', email: 'johndoe@gmail.com'},
-//   {id: 2, name: 'Jane Doe', email: 'janedoe@gmail.com'},
-//   {id: 3, name: 'Mike Doe', email: 'mikedoe@gmail.com'},
-// ];
-
-// const getUser = (args: {id: number}): User | undefined =>
-//   users.find(u => u.id === args.id);
-
-// const getUsers = (): User[] => users;
-
-// const createUser = (args: {input: UserInput}): User => {
-//   const user = {
-//     id: users.length + 1,
-//     ...args.input,
-//   };
-//   users.push(user);
-
-//   return user;
-// };
-
-// const updateUser = (args: {user: User}): User => {
-//   const index = users.findIndex(u => u.id === args.user.id);
-//   const targetUser = users[index];
-
-//   if (targetUser) users[index] = args.user;
-
-//   return targetUser;
-// };
-
-// const root = {
-//   getUser,
-//   getUsers,
-//   createUser,
-//   updateUser,
-// };
 
 export default class Graph {
   async start(models: Models) {
     const tables: string[] = [];
     const config = AppConfig.getInstance();
+
     for (const entity of config.contracts) {
       const {abi} = entity;
       const contract = loadContractInterface(abi);
@@ -99,6 +55,13 @@ export default class Graph {
     }
 
     const rawSchema = `
+
+        input Filter {
+          column: String!
+          type: String!
+          value: String!
+        }
+
         ${tables
           .map(table => {
             const columns = models.sequelize.models[table].getAttributes();
@@ -110,7 +73,7 @@ export default class Graph {
                     column =>
                       `${column}: ${sequelizeToGraphqlType(
                         columns[column].type
-                      )}!
+                      )}
                       `
                   )
                   .join('')}
@@ -123,7 +86,7 @@ export default class Graph {
             ${tables
               .map(
                 table =>
-                  `get${table}: [${table}]
+                  `get${table}(page: Int, pageSize: Int, filters: [Filter]): [${table}]
                 `
               )
               .join('')}
@@ -132,17 +95,38 @@ export default class Graph {
     const root = {} as any;
 
     for (const table of tables) {
-      root[`get${table}`] = async (q: any) => {
-        const {page, pageSize, filter} = q;
-        const offset = (page - 1) * pageSize;
-        console.log(page, pageSize, offset);
+      root[`get${table}`] = async (q: {
+        page: number;
+        pageSize: number;
+        filters: {column: string; type: string; value: string}[];
+      }) => {
+        const {page, pageSize, filters} = q;
+        const offset = ((page || 1) - 1) * (pageSize || 10);
 
         let query = `SELECT * FROM "${table}s"`;
 
-        if (filter) {
-          // Add WHERE clauses based on filter criteria
-          query += ` WHERE column_name = ${filter}`;
+        if (filters && filters.length > 0) {
+          let queryText = '';
+
+          filters.forEach((filter, index) => {
+            if (index > 0) {
+              queryText += ' AND ';
+            }
+
+            const {column, type, value} = filter;
+
+            if (type === 'substring') {
+              queryText += `"${column}" ILIKE %${value}%`;
+            } else if (type === 'equals') {
+              queryText += `"${column}"='${value}'`;
+            } else if (type === 'not equals') {
+              queryText += `"${column}"!='${value}'`;
+            }
+            console.log(queryText);
+          });
+          query += ` WHERE ${queryText}`;
         }
+        query += ` OFFSET ${offset} LIMIT ${pageSize || 10}`;
 
         const result = await models.sequelize.query(query, {
           type: QueryTypes.SELECT,
