@@ -2,23 +2,25 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import Models from './models';
-import {IndexerConfig, getIndexerConfig} from './helpers';
-import {createProvider} from './helpers/providers';
+import {createProvider} from './blockchain/providers';
 import {SmartContractEvent, SmartContract} from './SmartContract';
-import {EVMNetwork, convertToNetworkEnum} from './blockchain/networks';
-import {EventLog, JsonRpcProvider} from 'ethers';
+import {EVMNetwork} from './blockchain/networks';
+import {JsonRpcProvider} from 'ethers';
 import {hash} from './utils';
 import Graph from './graph';
+import AppConfig from './config';
 
 export default class Indexer {
-  config: IndexerConfig;
   models: Models;
   providers: Map<EVMNetwork, JsonRpcProvider>;
   watcherSubscriptions: any[];
+  config: AppConfig;
 
   constructor(configPath: string) {
-    this.config = getIndexerConfig(configPath);
-    this.models = new Models(this.config.db);
+    AppConfig.load(configPath);
+    this.config = AppConfig.getInstance();
+
+    this.models = new Models();
     this.providers = new Map();
     this.watcherSubscriptions = [];
   }
@@ -71,9 +73,7 @@ export default class Indexer {
   async processOldEvents() {
     for (const entity of this.config.contracts) {
       const {abi, contract, network, startBlock} = entity;
-      const provider = this.providers.get(
-        convertToNetworkEnum(network)
-      ) as JsonRpcProvider;
+      const provider = this.providers.get(network) as JsonRpcProvider;
       const currentBlock = await provider.getBlockNumber();
       const smartContract = new SmartContract(abi, contract, provider);
 
@@ -95,9 +95,7 @@ export default class Indexer {
   async watch() {
     for (const entity of this.config.contracts) {
       const {abi, contract, network, startBlock} = entity;
-      const provider = this.providers.get(
-        convertToNetworkEnum(network)
-      ) as JsonRpcProvider;
+      const provider = this.providers.get(network) as JsonRpcProvider;
       const smartContract = new SmartContract(abi, contract, provider);
 
       for (const ef of smartContract.getEvents()) {
@@ -115,7 +113,7 @@ export default class Indexer {
 
   async startGraph() {
     const graph = new Graph();
-    graph.start(this.config, this.models);
+    graph.start(this.models);
   }
 
   async destroy() {

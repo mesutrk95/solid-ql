@@ -4,6 +4,7 @@ import {
   solidityTypeToSequelizeType,
 } from '../SmartContract/utils';
 import {EventFragment} from 'ethers';
+import AppConfig from '../config';
 
 export interface DBModelColumn {
   name: string;
@@ -15,8 +16,9 @@ export interface DBModelColumn {
 export default class Models {
   sequelize: Sequelize;
 
-  constructor(url: string) {
-    this.sequelize = new Sequelize(url, {logging: false});
+  constructor() {
+    const config = AppConfig.getInstance();
+    this.sequelize = new Sequelize(config.db, {logging: false});
   }
 
   private defineModel(name: string, columns: DBModelColumn[]) {
