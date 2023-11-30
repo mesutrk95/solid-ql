@@ -3,10 +3,10 @@ import * as express from 'express';
 import {graphqlHTTP} from 'express-graphql';
 
 import Models from './models';
-import {IndexerConfig} from './helpers';
 import {loadContractInterface} from './SmartContract/utils';
 import {EventFragment} from 'ethers';
 import {DataTypeAbstract, DataTypes, QueryTypes} from 'sequelize';
+import AppConfig from './config';
 
 function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
   switch (sequelizeType) {
@@ -89,8 +89,9 @@ function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
 // };
 
 export default class Graph {
-  async start(config: IndexerConfig, models: Models) {
+  async start(models: Models) {
     const tables: string[] = [];
+    const config = AppConfig.getInstance();
     for (const entity of config.contracts) {
       const {abi} = entity;
       const contract = loadContractInterface(abi);
