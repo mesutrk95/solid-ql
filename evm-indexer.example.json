@@ -1,5 +1,6 @@
 {
     "db": "postgres://postgres:testuser@localhost:5432/indexer",
+    "columnsPrefix": "",
     "contracts": [
       {
         "abi": "../path/to/abi.json",

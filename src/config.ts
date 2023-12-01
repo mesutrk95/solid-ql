@@ -36,6 +36,7 @@ export interface IndexerConfig {
   contracts: IndexerConfigEntity[];
   providers: Providers;
   db: string;
+  columnsPrefix: string;
   getAllNetworks: () => EVMNetwork[];
 }
 
@@ -44,6 +45,7 @@ export default class AppConfig implements IndexerConfig {
   contracts: IndexerConfigEntity[] = [];
   providers: Providers = {} as Providers;
   db = '';
+  columnsPrefix = '';
 
   public static getInstance(): AppConfig {
     if (!AppConfig.instance) {
@@ -67,5 +69,7 @@ export default class AppConfig implements IndexerConfig {
     config.contracts = obj.contracts;
     config.providers = obj.providers;
     config.db = obj.db;
+    config.columnsPrefix =
+      typeof obj.columnsPrefix === 'undefined' ? 'indexer' : obj.columnsPrefix;
   }
 }
