@@ -113,7 +113,9 @@ export default class Graph {
     );
 
     app.listen(config.graph.port, () => {
-      console.log(`graphQL server started at http://localhost:${PORT}/graphql`);
+      console.log(
+        `graphQL server started at http://localhost:${config.graph.port}/graphql`
+      );
     });
   }
 }
