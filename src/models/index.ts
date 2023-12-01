@@ -1,20 +1,15 @@
 import {Sequelize, DataTypes, ModelAttributes, Model} from 'sequelize';
+import {EventFragment} from 'ethers';
+
 import {
   loadContractInterface,
   solidityTypeToSequelizeType,
-} from '../SmartContract/utils';
-import {EventFragment} from 'ethers';
+} from '../smart-contract/utils';
 import AppConfig from '../config';
-
-export interface DBModelColumn {
-  name: string;
-  type: DataTypes.DataTypeAbstract;
-  allowNull?: boolean;
-  default?: string | number | Object | undefined;
-}
+import {DBModelColumn} from './types';
 
 export function getColumnName(columnName: string) {
-  const prefix = AppConfig.getInstance().columnsPrefix;
+  const prefix = AppConfig.getInstance().store.columnsPrefix;
   return `${prefix}_${columnName}`;
 }
 
@@ -23,7 +18,7 @@ export default class Models {
 
   constructor() {
     const config = AppConfig.getInstance();
-    this.sequelize = new Sequelize(config.db, {logging: false});
+    this.sequelize = new Sequelize(config.store.url, {logging: false});
   }
 
   private defineModel(name: string, columns: DBModelColumn[]) {

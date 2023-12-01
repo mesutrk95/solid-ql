@@ -8,20 +8,7 @@ import {
   ethers,
 } from 'ethers';
 import {loadContractInterface} from './utils';
-
-export interface ListenEventSubscription {
-  unsubscribe: () => {};
-}
-export interface SmartContractEvent {
-  values: {
-    value: string | number | boolean;
-    name: string;
-    type: string;
-  }[];
-  blockNumber: number;
-  transactionHash: string;
-  name: string;
-}
+import {ListenEventSubscription, SmartContractEvent} from './types';
 
 export class SmartContract {
   contract: Contract;

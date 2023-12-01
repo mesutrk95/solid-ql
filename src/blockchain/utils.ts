@@ -1,5 +1,5 @@
 import {JsonRpcProvider, ethers} from 'ethers';
-import {EVMNetwork} from './networks';
+import {EVMNetwork} from './types';
 import AppConfig from '../config';
 
 export function createProvider(
