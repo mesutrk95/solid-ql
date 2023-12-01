@@ -3,6 +3,9 @@
       "url": "postgres://postgres:testuser@localhost:5432/indexer",
       "columnsPrefix": ""
     },
+    "graph": {
+      "port": 8000
+    },
     "contracts": [
       {
         "abi": "../path/to/abi.json",
