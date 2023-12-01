@@ -2,46 +2,11 @@ import {buildSchema} from 'graphql';
 import * as express from 'express';
 import {graphqlHTTP} from 'express-graphql';
 
-import Models from './models';
-import {loadContractInterface} from './smart-contract/utils';
-import {DataTypes, QueryTypes} from 'sequelize';
-import AppConfig from './config';
-
-function sequelizeToGraphqlType(sequelizeType: DataTypes.DataType) {
-  switch (sequelizeType) {
-    case DataTypes.STRING.key:
-    case DataTypes.TEXT.key:
-    case DataTypes.UUID.key:
-    case DataTypes.UUIDV1.key:
-    case DataTypes.UUIDV4.key:
-    case DataTypes.JSON.key:
-    case DataTypes.JSONB.key:
-      return 'String';
-
-    case DataTypes.FLOAT.key:
-    case DataTypes.REAL.key:
-    case DataTypes.DOUBLE.key:
-      return 'Float';
-
-    case DataTypes.INTEGER.key:
-    case DataTypes.BIGINT.key:
-    case DataTypes.DECIMAL.key:
-      return 'Int';
-
-    case DataTypes.BOOLEAN.key:
-      return 'Boolean';
-
-    case DataTypes.DATE.key:
-    case DataTypes.DATEONLY.key:
-    case DataTypes.TIME.key:
-      return 'Date';
-
-    case DataTypes.ENUM.key:
-      return 'String';
-    default:
-      return 'String';
-  }
-}
+import Models from '../models';
+import {loadContractInterface} from '../smart-contract/utils';
+import {QueryTypes} from 'sequelize';
+import AppConfig from '../config';
+import {sequelizeToGraphqlType} from './utils';
 
 export default class Graph {
   async start(models: Models) {
@@ -91,9 +56,8 @@ export default class Graph {
               )
               .join('')}
         }`;
-    console.log(rawSchema);
-    const root = {} as any;
 
+    const root = {} as any;
     for (const table of tables) {
       root[`get${table}`] = async (q: {
         page: number;
@@ -148,12 +112,8 @@ export default class Graph {
       })
     );
 
-    const PORT = 8000;
-
-    app.listen(PORT);
-
-    console.log(
-      `Running a GraphQL API server at http://localhost:${PORT}/graphql`
-    );
+    app.listen(config.graph.port, () => {
+      console.log(`graphQL server started at http://localhost:${PORT}/graphql`);
+    });
   }
 }

@@ -36,11 +36,15 @@ interface IndexerStoreConfig {
   url: string;
   columnsPrefix: string;
 }
+interface GraphQLConfig {
+  port: number;
+}
 
 export interface IndexerConfig {
   contracts: IndexerConfigEntity[];
   providers: Providers;
   store: IndexerStoreConfig;
+  graph: GraphQLConfig;
   getAllNetworks: () => EVMNetwork[];
 }
 
@@ -49,6 +53,7 @@ export default class AppConfig implements IndexerConfig {
   contracts: IndexerConfigEntity[] = [];
   providers: Providers = {} as Providers;
   store: IndexerStoreConfig = {} as IndexerStoreConfig;
+  graph: GraphQLConfig = {} as GraphQLConfig;
 
   public static getInstance(): AppConfig {
     if (!AppConfig.instance) {
@@ -72,6 +77,7 @@ export default class AppConfig implements IndexerConfig {
     config.contracts = obj.contracts;
     config.providers = obj.providers;
     config.store = obj.store;
+    config.graph = obj.graph;
     config.store.columnsPrefix =
       typeof obj.store.columnsPrefix === 'undefined'
         ? 'indexer'
