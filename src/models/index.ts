@@ -27,24 +27,37 @@ export default class Models {
   }
 
   private defineModel(name: string, columns: DBModelColumn[]) {
-    const modelColumns: ModelAttributes<Model> = {};
-    modelColumns[getColumnName('eventId')] = {type: DataTypes.INTEGER};
-    modelColumns[getColumnName('network')] = {type: DataTypes.STRING};
-    modelColumns[getColumnName('blockNumber')] = {type: DataTypes.INTEGER};
-    modelColumns[getColumnName('txHash')] = {type: DataTypes.STRING};
-    modelColumns[getColumnName('contract')] = {type: DataTypes.STRING};
+    const tableColumns: ModelAttributes<Model> = {};
+    tableColumns[getColumnName('eventId')] = {type: DataTypes.INTEGER};
+    tableColumns[getColumnName('network')] = {type: DataTypes.STRING};
+    tableColumns[getColumnName('blockNumber')] = {type: DataTypes.INTEGER};
+    tableColumns[getColumnName('txHash')] = {type: DataTypes.STRING};
+    tableColumns[getColumnName('contract')] = {type: DataTypes.STRING};
 
     columns.forEach((col: DBModelColumn) => {
-      modelColumns[col.name] = {
+      tableColumns[col.name] = {
         type: col.type,
         allowNull: col.allowNull,
         defaultValue: col.default,
       };
     });
 
-    const model = this.sequelize.define(name, modelColumns, {
-      // Other model options go here
+    const model = this.sequelize.define(name, tableColumns, {
       underscored: false,
+      indexes: [
+        {
+          unique: true,
+          fields: [getColumnName('eventId')],
+        },
+        {
+          unique: false,
+          fields: [getColumnName('contract')],
+        },
+        {
+          unique: false,
+          fields: [getColumnName('network')],
+        },
+      ],
     });
     return model;
   }
@@ -90,26 +103,5 @@ export default class Models {
 
   async generateAllDatabaseModels(abiFile: string) {
     this.loadAllSmartContractModels(abiFile);
-
-    this.sequelize.define(
-      'IndexStatus',
-      {
-        contract: {
-          type: DataTypes.STRING,
-        },
-        eventName: {
-          type: DataTypes.STRING,
-        },
-        network: {
-          type: DataTypes.STRING,
-        },
-        blockNumber: {
-          type: DataTypes.INTEGER,
-        },
-      },
-      {
-        // Other model options go here
-      }
-    );
   }
 }

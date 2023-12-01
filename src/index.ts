@@ -1,19 +1,27 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import Models, {getColumnName} from './models';
-import {createProvider} from './blockchain/providers';
-import {SmartContractEvent, SmartContract} from './SmartContract';
-import {EVMNetwork} from './blockchain/networks';
 import {JsonRpcProvider} from 'ethers';
+import {createProvider} from './blockchain/providers';
+import {
+  SmartContractEvent,
+  SmartContract,
+  ListenEventSubscription,
+} from './SmartContract';
+import {EVMNetwork} from './blockchain/networks';
 import {hash} from './utils';
 import Graph from './graph';
 import AppConfig from './config';
+import Models, {getColumnName} from './models';
+
+interface EventStoreRecord {
+  [key: string]: string | number;
+}
 
 export default class Indexer {
   models: Models;
   providers: Map<EVMNetwork, JsonRpcProvider>;
-  watcherSubscriptions: any[];
+  watcherSubscriptions: ListenEventSubscription[];
   config: AppConfig;
 
   constructor(configPath: string) {
@@ -52,7 +60,7 @@ export default class Indexer {
       where: {[getColumnName('eventId')]: eventId},
     });
     if (!dbEvent) {
-      const record: any = {};
+      const record: EventStoreRecord = {};
       record[getColumnName('eventId')] = eventId;
       record[getColumnName('blockNumber')] = event.blockNumber;
       record[getColumnName('txHash')] = event.transactionHash;
@@ -61,7 +69,7 @@ export default class Indexer {
       for (const ev of event.values) {
         record[ev.name] = ev.value.toString();
       }
-      await this.models.sequelize.models[event.name].create(record);
+      await this.models.sequelize.models[event.name].create(record as any);
       console.log(`stored event ${event.name}, eventId: ${eventId}`);
     } else {
       console.log(
@@ -99,7 +107,7 @@ export default class Indexer {
       const smartContract = new SmartContract(abi, contract, provider);
 
       for (const ef of smartContract.getEvents()) {
-        const sub = smartContract.listenEvents(
+        const sub = smartContract.listenEvent(
           ef.name,
           (event: SmartContractEvent) => {
             if (event.blockNumber < startBlock) return;
