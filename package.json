@@ -6,9 +6,9 @@
   "bin": {
     "evm-indexer": "./bin.js"
   },
-  "author": "Masoud Rezakhanlou",
+  "author": "Masoud Rezakhanlou <masoud.rk95@gmail.com>",
   "license": "ISC",
-  "git repository": "https://github.com/mesutrk95/evm-indexer",
+  "repository": "https://github.com/mesutrk95/evm-indexer",
   "keywords": [
     "ethereum",
     "evm",
