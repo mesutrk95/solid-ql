@@ -9,9 +9,12 @@ import {
 } from 'ethers';
 import {loadContractInterface} from './utils';
 
+export interface ListenEventSubscription {
+  unsubscribe: () => {};
+}
 export interface SmartContractEvent {
   values: {
-    value: any;
+    value: string | number | boolean;
     name: string;
     type: string;
   }[];
@@ -73,7 +76,7 @@ export class SmartContract {
     return events.map(event => this.parseEventLog(event));
   }
 
-  listenEvents(eventName: string, callback: Listener) {
+  listenEvent(eventName: string, callback: Listener): ListenEventSubscription {
     this.contract.on(eventName, (...args: (ContractEventPayload | any)[]) => {
       const payload = args.find(
         arg => typeof arg === 'object'
