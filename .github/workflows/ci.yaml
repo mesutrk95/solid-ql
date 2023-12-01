@@ -14,8 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dev dependencies
+      - name: Install dependencies
         run: yarn install --no-lockfile
 
-      - name: Build 
+      - name: Run lint
+        run: yarn run lint
+
+      - name: Run build
         run: yarn run compile
