@@ -2,13 +2,13 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import {JsonRpcProvider} from 'ethers';
-import {createProvider} from './blockchain/providers';
+import {createProvider} from './blockchain/utils';
+import {EVMNetwork} from './blockchain/types';
+import {SmartContract} from './smart-contract';
 import {
   SmartContractEvent,
-  SmartContract,
   ListenEventSubscription,
-} from './SmartContract';
-import {EVMNetwork} from './blockchain/networks';
+} from './smart-contract/types';
 import {hash} from './utils';
 import Graph from './graph';
 import AppConfig from './config';

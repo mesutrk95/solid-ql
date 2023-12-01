@@ -3,7 +3,7 @@ import * as express from 'express';
 import {graphqlHTTP} from 'express-graphql';
 
 import Models from './models';
-import {loadContractInterface} from './SmartContract/utils';
+import {loadContractInterface} from './smart-contract/utils';
 import {DataTypes, QueryTypes} from 'sequelize';
 import AppConfig from './config';
 

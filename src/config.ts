@@ -1,7 +1,7 @@
 import {readFileSync} from 'fs';
-import {EVMNetwork} from './blockchain/networks';
+import {EVMNetwork} from './blockchain/types';
 
-type ProviderType = 'alchemy' | 'infura' | 'json-rpc';
+export type ProviderType = 'alchemy' | 'infura' | 'json-rpc';
 
 interface AlchemyProvider {
   type: 'alchemy';
@@ -32,11 +32,15 @@ interface IndexerConfigEntity {
   startBlock: number;
 }
 
+interface IndexerStoreConfig {
+  url: string;
+  columnsPrefix: string;
+}
+
 export interface IndexerConfig {
   contracts: IndexerConfigEntity[];
   providers: Providers;
-  db: string;
-  columnsPrefix: string;
+  store: IndexerStoreConfig;
   getAllNetworks: () => EVMNetwork[];
 }
 
@@ -44,8 +48,7 @@ export default class AppConfig implements IndexerConfig {
   private static instance: AppConfig;
   contracts: IndexerConfigEntity[] = [];
   providers: Providers = {} as Providers;
-  db = '';
-  columnsPrefix = '';
+  store: IndexerStoreConfig = {} as IndexerStoreConfig;
 
   public static getInstance(): AppConfig {
     if (!AppConfig.instance) {
@@ -68,8 +71,10 @@ export default class AppConfig implements IndexerConfig {
     const config = this.getInstance();
     config.contracts = obj.contracts;
     config.providers = obj.providers;
-    config.db = obj.db;
-    config.columnsPrefix =
-      typeof obj.columnsPrefix === 'undefined' ? 'indexer' : obj.columnsPrefix;
+    config.store = obj.store;
+    config.store.columnsPrefix =
+      typeof obj.store.columnsPrefix === 'undefined'
+        ? 'indexer'
+        : obj.store.columnsPrefix;
   }
 }
