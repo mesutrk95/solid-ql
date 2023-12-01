@@ -17,6 +17,7 @@ program
     'Index old events starting from startBlock parameter in config file'
   )
   .option('-w, --watch', 'watch for the new blockchain events')
+  .option('-g, --graph', 'start the graphQL server')
   .parse(process.argv);
 
 program.parse();
@@ -52,6 +53,11 @@ indexer.prepare().then(async () => {
   if (options.watch) {
     console.log('watching the network for new events...');
     await indexer.watch();
+  }
+
+  if (options.graph) {
+    console.log('graph started for the project');
+    await indexer.startGraph();
   }
 });
 

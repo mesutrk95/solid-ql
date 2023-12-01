@@ -1,23 +1,34 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import Models from './models';
-import {IndexerConfig, getIndexerConfig} from './helpers';
-import {createProvider} from './helpers/providers';
-import {SmartContractEvent, SmartContract} from './SmartContract';
-import {EVMNetwork, convertToNetworkEnum} from './blockchain/networks';
-import {EventLog, JsonRpcProvider} from 'ethers';
+import {JsonRpcProvider} from 'ethers';
+import {createProvider} from './blockchain/utils';
+import {EVMNetwork} from './blockchain/types';
+import {SmartContract} from './smart-contract';
+import {
+  SmartContractEvent,
+  ListenEventSubscription,
+} from './smart-contract/types';
 import {hash} from './utils';
+import Graph from './graph';
+import AppConfig from './config';
+import Models, {getColumnName} from './models';
+
+interface EventStoreRecord {
+  [key: string]: string | number;
+}
 
 export default class Indexer {
-  config: IndexerConfig;
   models: Models;
   providers: Map<EVMNetwork, JsonRpcProvider>;
-  watcherSubscriptions: any[];
+  watcherSubscriptions: ListenEventSubscription[];
+  config: AppConfig;
 
   constructor(configPath: string) {
-    this.config = getIndexerConfig(configPath);
-    this.models = new Models(this.config.db);
+    AppConfig.load(configPath);
+    this.config = AppConfig.getInstance();
+
+    this.models = new Models();
     this.providers = new Map();
     this.watcherSubscriptions = [];
   }
@@ -46,19 +57,19 @@ export default class Indexer {
     const eventId = hash(event.transactionHash);
     const eventSchema = this.models.sequelize.models[event.name];
     const dbEvent = await eventSchema.findOne({
-      where: {eventId},
+      where: {[getColumnName('eventId')]: eventId},
     });
     if (!dbEvent) {
-      const record: any = {};
-      record.blockNumber = event.blockNumber;
-      record.txHash = event.transactionHash;
-      record.network = network.toLowerCase();
-      record.contract = contract;
+      const record: EventStoreRecord = {};
+      record[getColumnName('eventId')] = eventId;
+      record[getColumnName('blockNumber')] = event.blockNumber;
+      record[getColumnName('txHash')] = event.transactionHash;
+      record[getColumnName('network')] = network.toLowerCase();
+      record[getColumnName('contract')] = contract;
       for (const ev of event.values) {
         record[ev.name] = ev.value.toString();
       }
-      record.eventId = eventId;
-      await this.models.sequelize.models[event.name].create(record);
+      await this.models.sequelize.models[event.name].create(record as any);
       console.log(`stored event ${event.name}, eventId: ${eventId}`);
     } else {
       console.log(
@@ -70,9 +81,7 @@ export default class Indexer {
   async processOldEvents() {
     for (const entity of this.config.contracts) {
       const {abi, contract, network, startBlock} = entity;
-      const provider = this.providers.get(
-        convertToNetworkEnum(network)
-      ) as JsonRpcProvider;
+      const provider = this.providers.get(network) as JsonRpcProvider;
       const currentBlock = await provider.getBlockNumber();
       const smartContract = new SmartContract(abi, contract, provider);
 
@@ -94,13 +103,11 @@ export default class Indexer {
   async watch() {
     for (const entity of this.config.contracts) {
       const {abi, contract, network, startBlock} = entity;
-      const provider = this.providers.get(
-        convertToNetworkEnum(network)
-      ) as JsonRpcProvider;
+      const provider = this.providers.get(network) as JsonRpcProvider;
       const smartContract = new SmartContract(abi, contract, provider);
 
       for (const ef of smartContract.getEvents()) {
-        const sub = smartContract.listenEvents(
+        const sub = smartContract.listenEvent(
           ef.name,
           (event: SmartContractEvent) => {
             if (event.blockNumber < startBlock) return;
@@ -110,6 +117,11 @@ export default class Indexer {
         this.watcherSubscriptions.push(sub);
       }
     }
+  }
+
+  async startGraph() {
+    const graph = new Graph();
+    graph.start(this.models);
   }
 
   async destroy() {

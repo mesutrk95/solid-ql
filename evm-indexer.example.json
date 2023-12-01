@@ -1,0 +1,25 @@
+{
+    "store": {
+      "url": "postgres://postgres:testuser@localhost:5432/indexer",
+      "columnsPrefix": ""
+    },
+    "contracts": [
+      {
+        "abi": "../path/to/abi.json",
+        "contract": "0x...",
+        "network": "sepolia",
+        "startBlock": 4673457
+      }
+    ],
+    "providers": {
+      "sepolia": {
+        "type": "alchemy",
+        "key": "..."
+      },
+      "bsc_test": {
+        "type": "json-rpc",
+        "rpcUrl": "..."
+      }
+    }
+  }
+  

@@ -1,5 +1,6 @@
 import {
   Contract,
+  ContractEventPayload,
   EventFragment,
   EventLog,
   JsonRpcProvider,
@@ -7,17 +8,7 @@ import {
   ethers,
 } from 'ethers';
 import {loadContractInterface} from './utils';
-
-export interface SmartContractEvent {
-  values: {
-    value: any;
-    name: string;
-    type: string;
-  }[];
-  blockNumber: number;
-  transactionHash: string;
-  name: string;
-}
+import {ListenEventSubscription, SmartContractEvent} from './types';
 
 export class SmartContract {
   contract: Contract;
@@ -25,7 +16,7 @@ export class SmartContract {
   constructor(
     path: string,
     contractAddress: string,
-    provider: JsonRpcProvider
+    provider: JsonRpcProvider | undefined
   ) {
     this.contract = new ethers.Contract(
       contractAddress,
@@ -72,10 +63,13 @@ export class SmartContract {
     return events.map(event => this.parseEventLog(event));
   }
 
-  listenEvents(eventName: string, callback: Listener) {
-    this.contract.on(eventName, (event: EventLog) =>
-      callback(this.parseEventLog(event))
-    );
+  listenEvent(eventName: string, callback: Listener): ListenEventSubscription {
+    this.contract.on(eventName, (...args: (ContractEventPayload | any)[]) => {
+      const payload = args.find(
+        arg => typeof arg === 'object'
+      ) as ContractEventPayload;
+      callback(this.parseEventLog(payload.log));
+    });
 
     return {
       unsubscribe: () => this.contract.removeListener(eventName, callback),
