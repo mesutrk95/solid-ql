@@ -13,6 +13,11 @@ export interface DBModelColumn {
   default?: string | number | Object | undefined;
 }
 
+export function getColumnName(columnName: string) {
+  const prefix = AppConfig.getInstance().columnsPrefix;
+  return `${prefix}_${columnName}`;
+}
+
 export default class Models {
   sequelize: Sequelize;
 
@@ -23,10 +28,11 @@ export default class Models {
 
   private defineModel(name: string, columns: DBModelColumn[]) {
     const modelColumns: ModelAttributes<Model> = {};
-    modelColumns.eventId = {type: DataTypes.INTEGER};
-    modelColumns.network = {type: DataTypes.STRING};
-    modelColumns.blockNumber = {type: DataTypes.INTEGER};
-    modelColumns.txHash = {type: DataTypes.STRING};
+    modelColumns[getColumnName('eventId')] = {type: DataTypes.INTEGER};
+    modelColumns[getColumnName('network')] = {type: DataTypes.STRING};
+    modelColumns[getColumnName('blockNumber')] = {type: DataTypes.INTEGER};
+    modelColumns[getColumnName('txHash')] = {type: DataTypes.STRING};
+    modelColumns[getColumnName('contract')] = {type: DataTypes.STRING};
 
     columns.forEach((col: DBModelColumn) => {
       modelColumns[col.name] = {
@@ -38,6 +44,7 @@ export default class Models {
 
     const model = this.sequelize.define(name, modelColumns, {
       // Other model options go here
+      underscored: false,
     });
     return model;
   }

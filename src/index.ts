@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import Models from './models';
+import Models, {getColumnName} from './models';
 import {createProvider} from './blockchain/providers';
 import {SmartContractEvent, SmartContract} from './SmartContract';
 import {EVMNetwork} from './blockchain/networks';
@@ -49,18 +49,18 @@ export default class Indexer {
     const eventId = hash(event.transactionHash);
     const eventSchema = this.models.sequelize.models[event.name];
     const dbEvent = await eventSchema.findOne({
-      where: {eventId},
+      where: {[getColumnName('eventId')]: eventId},
     });
     if (!dbEvent) {
       const record: any = {};
-      record.blockNumber = event.blockNumber;
-      record.txHash = event.transactionHash;
-      record.network = network.toLowerCase();
-      record.contract = contract;
+      record[getColumnName('eventId')] = eventId;
+      record[getColumnName('blockNumber')] = event.blockNumber;
+      record[getColumnName('txHash')] = event.transactionHash;
+      record[getColumnName('network')] = network.toLowerCase();
+      record[getColumnName('contract')] = contract;
       for (const ev of event.values) {
         record[ev.name] = ev.value.toString();
       }
-      record.eventId = eventId;
       await this.models.sequelize.models[event.name].create(record);
       console.log(`stored event ${event.name}, eventId: ${eventId}`);
     } else {
