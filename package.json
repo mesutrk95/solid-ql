@@ -1,11 +1,27 @@
 {
   "name": "evm-indexer",
   "version": "1.0.0",
-  "description": "",
+  "description": "A streamlined open-source tool that monitors and extracts event data from EVM-compatible contracts, efficiently storing the information in a PostgreSQL database, and offering a GraphQL interface. Seamlessly integrates with Hardhat or Truffle projects with minimal configuration",
   "main": "./dist/index.js",
   "bin": {
     "evm-indexer": "./bin.js"
   },
+  "author": "Masoud Rezakhanlou <masoud.rk95@gmail.com>",
+  "license": "ISC",
+  "repository": "https://github.com/mesutrk95/evm-indexer",
+  "keywords": [
+    "ethereum",
+    "evm",
+    "indexer",
+    "graphql",
+    "sql",
+    "ethers",
+    "eth",
+    "truffle",
+    "hardhat",
+    "solidity",
+    "web3"
+  ],
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/index.ts\"",
@@ -17,8 +33,6 @@
     "prepare": "tsc",
     "posttest": "lint"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "commander": "^11.1.0",
     "dotenv": "^16.3.1",
