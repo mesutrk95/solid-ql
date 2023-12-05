@@ -1,0 +1,27 @@
+{
+  "store": {
+    "url": "postgres://postgres:masoud1374@localhost:5432/indexer",
+    "columnsPrefix": ""
+  },
+  "graph": {
+    "port": 8000
+  },
+  "contracts": [
+    {
+      "abi": "../crafteo-marekteplace/artifacts/contracts/Auction.sol/Auction.json",
+      "contract": "0x2c21c2158aca1eaaf1b8319dfabf8e0871601008",
+      "network": "sepolia",
+      "startBlock": 4673457
+    }
+  ],
+  "providers": {
+    "sepolia": {
+      "type": "alchemy",
+      "key": "UWGpZO1vwXneuuoMUhVOWw_meeUC8WDT"
+    },
+    "bsc_test": {
+      "type": "json-rpc",
+      "rpcUrl": "https://data-seed-prebsc-2-s1.binance.org:8545/"
+    }
+  }
+}
