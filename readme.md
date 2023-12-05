@@ -1,7 +1,8 @@
 
-![example ci.yaml](https://github.com/mesutrk95/solid-ql/actions/workflows/ci.yaml/badge.svg?branch=develop)
 
 # 🚀 Solid-QL: GraphQL For Your Decenteralized Data 
+![example ci.yaml](https://github.com/mesutrk95/solid-ql/actions/workflows/ci.yaml/badge.svg?branch=develop)
+
 ## Overview
 
 **Solid-QL** is a free and open-source project designed to watch and read EVM-compatible contracts event data. It can store the contract events in a PostgreSQL database and serve the data on a GraphQL interface. The project is easy to integrate into Hardhat or Truffle projects with minimal configurations and a straightforward setup.
