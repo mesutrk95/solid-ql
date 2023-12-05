@@ -1,7 +1,12 @@
-# Solid-QL 🚀
-## Query Your Decenteralized Data 
+
+![example ci.yaml](https://github.com/mesutrk95/solid-ql/actions/workflows/ci.yaml/badge.svg?branch=develop)
+
+# 🚀 Solid-QL: GraphQL For Your Decenteralized Data 
+## Overview
 
 **Solid-QL** is a free and open-source project designed to watch and read EVM-compatible contracts event data. It can store the contract events in a PostgreSQL database and serve the data on a GraphQL interface. The project is easy to integrate into Hardhat or Truffle projects with minimal configurations and a straightforward setup.
+
+
 
 ## Documentation
 For more details, you can refer to the [GitBook documentation](https://masoudrk95.gitbook.io/solid-ql/) or get the package at [Solid-QL npm package](https://www.npmjs.com/package/solid-ql).
@@ -20,6 +25,7 @@ yarn add solid-ql
 # Install globally
 npm install -g solid-ql
 ```
+
 
 ## Config 
 set up a solid-ql.json file in the root directory of your project. This configuration file holds crucial information for connecting to your PostgreSQL database, specifying contracts, and defining providers. Here's an example solid-ql.json configuration:
