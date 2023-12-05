@@ -32,7 +32,7 @@ if (!program.args.length) {
 function getProjectConfigPath() {
   const directory = program.args[0];
   const target = path.resolve(directory);
-  const configFile = path.join(target, 'evm-indexer.json');
+  const configFile = path.join(target, 'solid-ql.json');
   return configFile;
 }
 
