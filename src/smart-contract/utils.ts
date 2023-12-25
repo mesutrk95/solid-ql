@@ -11,7 +11,21 @@ export function solidityTypeToSequelizeType(type: string) {
     case 'address':
       return DataTypes.STRING;
     case 'uint256':
+    case 'uint128':
+    case 'uint64':
+    case 'uint32':
+    case 'uint16':
+    case 'uint8':
       return DataTypes.BIGINT;
+    case 'int256':
+    case 'int128':
+    case 'int64':
+    case 'int32':
+    case 'int16':
+    case 'int8':
+      return DataTypes.BIGINT;
+    case 'bytes':
+      return DataTypes.BLOB;
     default:
       throw new Error(`Unexpected type in abi file: ${type}`);
   }
