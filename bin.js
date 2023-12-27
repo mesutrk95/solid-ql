@@ -40,6 +40,12 @@ const configFile = getProjectConfigPath();
 console.log('loading config from', Indexer);
 const indexer = new Indexer(configFile);
 indexer.prepare().then(async () => {
+  if (!options.clean && !options.sync && !options.watch && !options.graph) {
+    await indexer.sync();
+    await indexer.watch();
+    await indexer.startGraph();
+  }
+
   if (options.clean) {
     console.log('cleaning the database schemas and generating them again');
     await indexer.sync(true);
