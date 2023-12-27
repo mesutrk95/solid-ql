@@ -34,7 +34,7 @@ set up a solid-ql.json file in the root directory of your project. This configur
 {
   "store": {
     "url": "postgres://postgres:testuser@localhost:5432/indexer",
-    "columnsPrefix": ""
+    "solidQlColumnsPrefix": ""
   },
   "graph": {
     "port": 8000

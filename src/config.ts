@@ -34,7 +34,7 @@ interface IndexerConfigEntity {
 
 interface IndexerStoreConfig {
   url: string;
-  columnsPrefix: string;
+  solidQlColumnsPrefix: string;
 }
 interface GraphQLConfig {
   port: number;
@@ -78,9 +78,9 @@ export default class AppConfig implements IndexerConfig {
     config.providers = obj.providers;
     config.store = obj.store;
     config.graph = obj.graph;
-    config.store.columnsPrefix =
-      typeof obj.store.columnsPrefix === 'undefined'
+    config.store.solidQlColumnsPrefix =
+      typeof obj.store.solidQlColumnsPrefix === 'undefined'
         ? 'indexer'
-        : obj.store.columnsPrefix;
+        : obj.store.solidQlColumnsPrefix;
   }
 }

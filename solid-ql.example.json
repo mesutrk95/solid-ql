@@ -1,7 +1,7 @@
 {
     "store": {
       "url": "postgres://postgres:testuser@localhost:5432/indexer",
-      "columnsPrefix": ""
+      "solidQlColumnsPrefix": "test"
     },
     "graph": {
       "port": 8000

@@ -9,7 +9,7 @@ import AppConfig from '../config';
 import {DBModelColumn} from './types';
 
 export function getColumnName(columnName: string) {
-  const prefix = AppConfig.getInstance().store.columnsPrefix;
+  const prefix = AppConfig.getInstance().store.solidQlColumnsPrefix;
   return `${prefix}_${columnName}`;
 }
 
