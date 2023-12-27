@@ -27,6 +27,10 @@ jobs:
       - name: Run build
         run: yarn run compile
 
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Publish NPM package 📦
         run: npm publish
         env:
