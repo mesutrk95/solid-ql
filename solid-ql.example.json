@@ -4,7 +4,8 @@
       "solidQlColumnsPrefix": "test"
     },
     "graph": {
-      "port": 8000
+      "port": 8000,
+      "apiPath": "api"
     },
     "contracts": [
       {

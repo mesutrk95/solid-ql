@@ -104,7 +104,7 @@ export default class Graph {
     const app = express();
 
     app.use(
-      '/graphql',
+      config?.graph?.apiPath || 'graphql',
       graphqlHTTP({
         schema: schema,
         rootValue: root,

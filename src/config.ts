@@ -38,6 +38,8 @@ interface IndexerStoreConfig {
 }
 interface GraphQLConfig {
   port: number;
+  apiPath: string;
+  options: Object;
 }
 
 export interface IndexerConfig {
