@@ -1,0 +1,62 @@
+name: 🐞 Bug report
+description: Create a report to help us improve
+labels:
+  - "Bug"
+body:
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: A concise description of what you expected to happen along with screenshots if applicable.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+        5. Add screen shots if applicable
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: A concise description of what you expected to happen.
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Describe where the bug is happening.
+      options:
+        - test
+        - production
+    validations:
+      required: true
+  - type: textarea
+    id: network
+    attributes:
+      label: Network
+      description: Describe which network you are using
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Operating system
+      description: The operating system and the version you are using.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Node.js version
+      description: The nodejs version you are using.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: true
