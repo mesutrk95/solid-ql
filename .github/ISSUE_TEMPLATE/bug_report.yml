@@ -32,6 +32,7 @@ body:
       description: Describe where the bug is happening.
       options:
         - test
+        - staging
         - production
     validations:
       required: true
@@ -65,5 +66,3 @@ body:
     attributes:
       label: Additional context
       description: Add any other context about the problem here.
-    validations:
-      required: true
